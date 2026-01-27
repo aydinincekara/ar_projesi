@@ -1,107 +1,350 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bugünün Ders İçeriği</title>
-    <style>
-        /* Bilişimci işi, göz yormayan modern karanlık tema */
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --accent: #00d4ff; /* Neon mavi vurgu */
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            border-left: 5px solid var(--accent);
-        }
-        h1, h2 { color: var(--accent); margin-top: 0; }
-        .date { font-size: 0.9em; opacity: 0.7; margin-bottom: 15px; display: block; }
-        a { color: #4fc3f7; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .btn {
-            display: inline-block;
-            background-color: var(--accent);
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            text-decoration: none;
-            margin-top: 10px;
-        }
-        /* Kod blokları için stil */
-        pre {
-            background: #2d2d2d;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-            border: 1px solid #444;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="50" style="filter: invert(1); opacity: 0.5;">
-            <h3>Bilişim Teknolojileri</h3>
-            <span id="tarih" class="date"></span>
-        </div>
-
-        <div class="card">
-            <h2>📢 Bugünkü Konu: Arduino & Sensörler</h2>
-            <p>Merhaba arkadaşlar, bugün HC-SR04 Ultrasonik mesafe sensörü ile park sensörü uygulaması yapacağız.</p>
-            
-            <h3>📌 Gerekli Malzemeler:</h3>
-            <ul>
-                <li>Arduino Uno</li>
-                <li>HC-SR04 Sensör</li>
-                <li>Buzzer</li>
-                <li>Jumper Kablolar</li>
-            </ul>
-        </div>
-
-        <div class="card">
-            <h2>💻 Örnek Kod</h2>
-            <p>Aşağıdaki kodu kopyalayıp IDE'ye yapıştırın:</p>
-            <pre>
-void setup() {
-  Serial.begin(9600);
-  pinMode(9, OUTPUT); // Buzzer
-}
-// Kodun devamı derste...</pre>
-        </div>
-
-        <div class="card">
-            <h2>🔗 Kaynaklar</h2>
-            <a href="#" class="btn">Ders Sunumu (PDF)</a>
-            <br><br>
-            <a href="#">Tinkercad Devre Şeması</a>
-        </div>
-        
-    </div>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Çoklu Eğitim Küpü XL</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
-        // Sayfa açıldığında otomatik olarak bugünün tarihini yazar
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('tarih').innerText = new Date().toLocaleDateString('tr-TR', options);
+        // =================================================================
+        // 1. KÜP İÇERİK VERİTABANI
+        // =================================================================
+        const cubeData = [
+            {
+                id: 0,
+                title: "GENEL TEKNOLOJİ",
+                faces: [
+                    { text: "AR", sub: "Artirilmis Gerceklik", color: "#ff4757", modalID: "modal-ar" },
+                    { text: "VR", sub: "Sanal Gerceklik", color: "#3742fa", modalID: "modal-vr" },
+                    { text: "STEM", sub: "Maker Kulturu", color: "#2ed573", modalID: "modal-stem" },
+                    { text: "AI", sub: "Yapay Zeka", color: "#ffa502", modalID: "modal-ai" },
+                    { text: "3D BASKI", sub: "Uretim", color: "#ff6348", modalID: "modal-print" },
+                    { text: "3D TARAMA", sub: "Dijitallesme", color: "#5352ed", modalID: "modal-scan" }
+                ]
+            },
+            {
+                id: 1,
+                title: "ROBOTİK & YAZILIM",
+                faces: [
+                    { text: "ARDUINO", sub: "Robotik Kodlama", color: "#00979d", modalID: "modal-arduino" },
+                    { text: "PYTHON", sub: "Veri Bilimi", color: "#f1c40f", modalID: "modal-python" },
+                    { text: "IOT", sub: "Nesnelerin Int.", color: "#8e44ad", modalID: "modal-iot" },
+                    { text: "UNITY", sub: "Oyun Gelistirme", color: "#2c3e50", modalID: "modal-unity" },
+                    { text: "SENSORS", sub: "Elektronik", color: "#e74c3c", modalID: "modal-sensor" },
+                    { text: "CIRCUITS", sub: "Devre Tasarimi", color: "#d35400", modalID: "modal-circuit" }
+                ]
+            }
+        ];
+
+        let currentCubeIndex = 0;
+        var baseScale = { x: 0.7, y: 0.7, z: 0.7 }; // Varsayılanı büyüttük
+
+        // --- MOBİL AYARLAR (GÜNCELLENDİ: DAHA BÜYÜK) ---
+        AFRAME.registerComponent('mobil-ayar', {
+            init: function () {
+                var isMobile = window.matchMedia("(max-width: 768px)").matches;
+                var kamera = document.querySelector('#ana-kamera');
+                var model = document.querySelector('#kafes-sistemi');
+
+                if (isMobile) {
+                    // MOBİL İÇİN BÜYÜK BOYUT
+                    baseScale = { x: 0.45, y: 0.45, z: 0.45 }; // 0.35'ten 0.45'e çıktı
+                    model.setAttribute('scale', baseScale);
+                    model.setAttribute('position', '0 1.3 -1.5');
+                    kamera.setAttribute('position', '0 1.3 -0.5');
+                } else {
+                    // PC İÇİN BÜYÜK BOYUT
+                    baseScale = { x: 0.7, y: 0.7, z: 0.7 }; // 0.5'ten 0.7'ye çıktı
+                    model.setAttribute('scale', baseScale);
+                    model.setAttribute('position', '0 0 0');
+                    kamera.setAttribute('position', '0 0 4.2'); // Çok az geri çektik (Çarpmasın diye)
+                }
+                updateCubeVisuals();
+            }
+        });
+
+        // --- DÖNDÜRME MOTORU ---
+        AFRAME.registerComponent('akilli-kontrol', {
+            schema: { speed: { default: 2.5 }, friction: { default: 0.94 } },
+            init: function () {
+                this.ifMouseDown = false;
+                this.startX = 0; this.startY = 0;
+                this.lastX = 0; this.lastY = 0;
+                this.velocityX = 0; this.velocityY = 0;
+                this.autoRotate = true; 
+
+                this.onStart = this.onStart.bind(this);
+                this.onEnd = this.onEnd.bind(this);
+                this.onMove = this.onMove.bind(this);
+
+                document.addEventListener('mousedown', this.onStart);
+                document.addEventListener('touchstart', (e) => this.onStart(e.touches[0]), {passive: false});
+                document.addEventListener('mouseup', this.onEnd);
+                document.addEventListener('touchend', this.onEnd);
+                document.addEventListener('mousemove', this.onMove);
+                document.addEventListener('touchmove', (e) => this.onMove(e.touches[0]), {passive: false});
+            },
+            onStart: function (e) {
+                if(e.target.closest('.modal') || e.target.closest('.nav-btn')) return;
+                this.autoRotate = false;
+                this.ifMouseDown = true;
+                this.startX = e.clientX; this.startY = e.clientY;
+                this.lastX = e.clientX; this.lastY = e.clientY;
+                this.velocityX = 0; this.velocityY = 0;
+            },
+            onMove: function (e) {
+                if (this.ifMouseDown) {
+                    var currentX = e.clientX; var currentY = e.clientY;
+                    this.velocityY = (currentX - this.lastX) * this.data.speed / 250; 
+                    this.velocityX = (currentY - this.lastY) * this.data.speed / 250;
+                    this.lastX = currentX; this.lastY = currentY;
+                }
+            },
+            onEnd: function () { this.ifMouseDown = false; },
+            tick: function () {
+                if (!this.ifMouseDown) {
+                    if(this.autoRotate) { this.el.object3D.rotation.y += 0.004; }
+                    else {
+                        this.velocityX *= this.data.friction;
+                        this.velocityY *= this.data.friction;
+                        this.el.object3D.rotation.y += this.velocityY;
+                        this.el.object3D.rotation.x += this.velocityX;
+                    }
+                }
+            }
+        });
+
+        // --- TIKLAMA YÖNETİCİSİ ---
+        AFRAME.registerComponent('tiklama-efekti', {
+            init: function () {
+                var el = this.el;
+                el.addEventListener('click', function (evt) {
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    
+                    el.setAttribute('animation__flash', {
+                        property: 'material.opacity', from: 0.8, to: 0.2, dur: 300, easing: 'easeOutQuad'
+                    });
+
+                    var faceIndex = parseInt(el.getAttribute('data-face-index'));
+                    var activeCube = cubeData[currentCubeIndex];
+                    var faceData = activeCube.faces[faceIndex];
+                    modalAc(faceData.modalID);
+                });
+            }
+        });
+
+        // --- KÜP GÜNCELLEME (AKILLI FONT AYARI) ---
+        function updateCubeVisuals() {
+            var data = cubeData[currentCubeIndex];
+            document.getElementById('cube-title').innerText = data.title;
+
+            for(let i=0; i<6; i++) {
+                let faceInfo = data.faces[i];
+                let plane = document.querySelector(`#plane-${i}`);
+                plane.setAttribute('color', faceInfo.color);
+                
+                let textMain = document.querySelector(`#text-main-${i}`);
+                textMain.setAttribute('value', faceInfo.text);
+                
+                // Akıllı Boyutlandırma
+                let len = faceInfo.text.length;
+                let newWidth = "10"; 
+
+                if (len > 3 && len <= 6) {
+                    newWidth = "8"; 
+                } else if (len > 6) {
+                    newWidth = "6.5"; 
+                }
+
+                textMain.setAttribute('width', newWidth);
+                
+                let textSub = document.querySelector(`#text-sub-${i}`);
+                textSub.setAttribute('value', faceInfo.sub);
+            }
+        }
+
+        // --- KÜP DEĞİŞTİRME ---
+        function changeCube(direction) {
+            var wrapper = document.querySelector('#kafes-sistemi');
+            wrapper.setAttribute('scale', '0.1 0.1 0.1');
+
+            setTimeout(() => {
+                if(direction === 'next') {
+                    currentCubeIndex++;
+                    if(currentCubeIndex >= cubeData.length) currentCubeIndex = 0;
+                } else {
+                    currentCubeIndex--;
+                    if(currentCubeIndex < 0) currentCubeIndex = cubeData.length - 1;
+                }
+                updateCubeVisuals();
+                wrapper.setAttribute('animation__pop', {
+                    property: 'scale',
+                    from: '0.1 0.1 0.1',
+                    to: baseScale.x + ' ' + baseScale.y + ' ' + baseScale.z,
+                    dur: 600,
+                    easing: 'easeOutElastic'
+                });
+            }, 200);
+        }
+
+    </script>
+
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+
+        .header-container { position: absolute; top: 40px; width: 100%; text-align: center; pointer-events: none; }
+        .header h1 { margin: 0; font-size: 2rem; color: #fff; text-shadow: 0 2px 10px #000; transition: 0.3s; }
+        .header p { color: #ccc; margin: 5px 0 0 0; font-size: 0.9rem; }
+
+        .nav-bar {
+            position: absolute; bottom: 40px; width: 100%; 
+            display: flex; justify-content: center; align-items: center; gap: 30px;
+            pointer-events: auto;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3); color: white;
+            width: 60px; height: 60px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+        }
+        .nav-btn:active { transform: scale(0.9); background: rgba(255,159,67,0.8); border-color: #ff9f43; }
+        
+        .page-indicator { color: rgba(255,255,255,0.5); font-weight: bold; font-size: 1.2rem; }
+
+        .modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            width: 90%; max-width: 400px; 
+            background: rgba(25, 30, 35, 0.98);
+            border: 2px solid rgba(255, 159, 67, 0.5); 
+            border-radius: 20px; padding: 30px; 
+            color: white; display: none; opacity: 0; pointer-events: auto; z-index: 20; 
+            box-shadow: 0 0 60px rgba(0,0,0,0.9); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal.aktif { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .modal h2 { margin: 0 0 15px 0; font-size: 1.5rem; color: #ff9f43; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .modal ul { padding-left: 20px; color: #ccc; font-size: 1.1rem; line-height: 1.6; }
+        .kapat-btn { background: #ff4757; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+
+        body.modal-open .header-container, body.modal-open .nav-bar { opacity: 0.1; pointer-events: none; }
+    </style>
+</head>
+
+<body>
+
+    <div id="ui-layer">
+        <div class="header-container">
+            <div class="header">
+                <h1 id="cube-title">YÜKLENİYOR...</h1>
+                <p>Küpü Döndür & Keşfet</p>
+            </div>
+        </div>
+        <div class="nav-bar">
+            <div class="nav-btn" onclick="changeCube('prev')"><i class="fa-solid fa-chevron-left"></i></div>
+            <div class="page-indicator"><i class="fa-solid fa-cube"></i></div>
+            <div class="nav-btn" onclick="changeCube('next')"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+    </div>
+
+    <div id="modal-ar" class="modal"><h2>Artırılmış Gerçeklik</h2><ul><li>Eğitimde AR</li><li>Sanal Sergi</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-vr" class="modal"><h2>Sanal Gerçeklik</h2><ul><li>VEXcode VR</li><li>Sanal Müze</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-stem" class="modal"><h2>STEM & Maker</h2><ul><li>Tasarım Odaklı</li><li>3D Kalem</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-ai" class="modal"><h2>Yapay Zeka</h2><ul><li>Makine Öğrenmesi</li><li>Görüntü İşleme</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-print" class="modal"><h2>3D Baskı</h2><ul><li>Cura Dilimleme</li><li>Filamentler</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-scan" class="modal"><h2>3D Tarama</h2><ul><li>Fotogrametri</li><li>Dijitalleştirme</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+
+    <div id="modal-arduino" class="modal"><h2>Arduino & Robotik</h2><ul><li>Sensör Bağlantısı</li><li>Devre Kurulumu</li><li>Motor Kontrolü</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-python" class="modal"><h2>Python Yazılım</h2><ul><li>Veri Analizi</li><li>AI Kütüphaneleri</li><li>Otomasyon</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-iot" class="modal"><h2>IoT (Nesnelerin İnterneti)</h2><ul><li>Akıllı Ev Sistemleri</li><li>ESP8266 / ESP32</li><li>Uzaktan Kontrol</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-unity" class="modal"><h2>Unity & C#</h2><ul><li>Oyun Tasarımı</li><li>Fizik Motoru</li><li>C# Kodlama</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-sensor" class="modal"><h2>Elektronik Sensörler</h2><ul><li>Mesafe Sensörü</li><li>Sıcaklık/Nem</li><li>Hareket Algılama</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+    <div id="modal-circuit" class="modal"><h2>Temel Devreler</h2><ul><li>Breadboard Kullanımı</li><li>Direnç ve LED</li><li>Ohm Kanunu</li></ul><button class="kapat-btn" onclick="modalKapat()">KAPAT</button></div>
+
+
+    <a-scene background="color: #111" cursor="rayOrigin: mouse" raycaster="objects: .tiklanabilir" mobil-ayar>
+        
+        <a-light type="ambient" intensity="1.2"></a-light>
+        <a-light type="directional" position="2 4 3" intensity="1.5"></a-light>
+        <a-light type="point" position="-3 2 4" intensity="0.8" color="#ff9f43"></a-light>
+
+        <a-entity id="kafes-sistemi" position="0 0 0" scale="0.5 0.5 0.5" akilli-kontrol>
+            
+            <a-box color="#2d3436" depth="1" height="1" width="1" material="roughness: 0.4; metalness: 0.2"></a-box>
+
+            <a-entity position="0 0 0.51">
+                <a-plane id="plane-0" class="tiklanabilir" data-face-index="0" tiklama-efekti width="1" height="1" opacity="0.2" color="#fff"></a-plane>
+                <a-text id="text-main-0" value="" align="center" color="white" width="10" position="0 0.1 0.01" font="kelsonsans"></a-text>
+                <a-text id="text-sub-0" value="" align="center" color="#ddd" width="3" position="0 -0.2 0.01"></a-text>
+                <a-plane width="0.95" height="0.95" position="0 0 0.005" material="shader: flat; wireframe: true; color: white; opacity: 0.3"></a-plane>
+            </a-entity>
+
+            <a-entity position="0.51 0 0" rotation="0 90 0">
+                <a-plane id="plane-1" class="tiklanabilir" data-face-index="1" tiklama-efekti width="1" height="1" opacity="0.2" color="#fff"></a-plane>
+                <a-text id="text-main-1" value="" align="center" color="white" width="10" position="0 0.1 0.01" font="kelsonsans"></a-text>
+                <a-text id="text-sub-1" value="" align="center" color="#ddd" width="3" position="0 -0.2 0.01"></a-text>
+                <a-plane width="0.95" height="0.95" position="0 0 0.005" material="shader: flat; wireframe: true; color: white; opacity: 0.3"></a-plane>
+            </a-entity>
+
+            <a-entity position="0 0 -0.51" rotation="0 180 0">
+                <a-plane id="plane-2" class="tiklanabilir" data-face-index="2" tiklama-efekti width="1" height="1" opacity="0.2" color="#fff"></a-plane>
+                <a-text id="text-main-2" value="" align="center" color="white" width="10" position="0 0.1 0.01" font="kelsonsans"></a-text>
+                <a-text id="text-sub-2" value="" align="center" color="#ddd" width="3" position="0 -0.2 0.01"></a-text>
+                <a-plane width="0.95" height="0.95" position="0 0 0.005" material="shader: flat; wireframe: true; color: white; opacity: 0.3"></a-plane>
+            </a-entity>
+
+            <a-entity position="-0.51 0 0" rotation="0 -90 0">
+                <a-plane id="plane-3" class="tiklanabilir" data-face-index="3" tiklama-efekti width="1" height="1" opacity="0.2" color="#fff"></a-plane>
+                <a-text id="text-main-3" value="" align="center" color="white" width="10" position="0 0.1 0.01" font="kelsonsans"></a-text>
+                <a-text id="text-sub-3" value="" align="center" color="#ddd" width="3" position="0 -0.2 0.01"></a-text>
+                <a-plane width="0.95" height="0.95" position="0 0 0.005" material="shader: flat; wireframe: true; color: white; opacity: 0.3"></a-plane>
+            </a-entity>
+
+            <a-entity position="0 0.51 0" rotation="-90 0 0">
+                <a-plane id="plane-4" class="tiklanabilir" data-face-index="4" tiklama-efekti width="1" height="1" opacity="0.2" color="#fff"></a-plane>
+                <a-text id="text-main-4" value="" align="center" color="white" width="10" position="0 0.1 0.01" font="kelsonsans"></a-text>
+                <a-text id="text-sub-4" value="" align="center" color="#ddd" width="3" position="0 -0.2 0.01"></a-text>
+                <a-plane width="0.95" height="0.95" position="0 0 0.005" material="shader: flat; wireframe: true; color: white; opacity: 0.3"></a-plane>
+            </a-entity>
+
+            <a-entity position="0 -0.51 0" rotation="90 0 0">
+                <a-plane id="plane-5" class="tiklanabilir" data-face-index="5" tiklama-efekti width="1" height="1" opacity="0.2" color="#fff"></a-plane>
+                <a-text id="text-main-5" value="" align="center" color="white" width="10" position="0 0.1 0.01" font="kelsonsans"></a-text>
+                <a-text id="text-sub-5" value="" align="center" color="#ddd" width="3" position="0 -0.2 0.01"></a-text>
+                <a-plane width="0.95" height="0.95" position="0 0 0.005" material="shader: flat; wireframe: true; color: white; opacity: 0.3"></a-plane>
+            </a-entity>
+
+        </a-entity>
+
+        <a-camera id="ana-kamera" position="0 0 4" look-controls="enabled: false" wasd-controls="enabled: false"></a-camera>
+
+    </a-scene>
+
+    <script>
+        function modalAc(id) {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('aktif'));
+            document.getElementById(id).classList.add('aktif');
+            document.body.classList.add('modal-open');
+
+            var wrapper = document.querySelector('#kafes-sistemi');
+            var targetScale = { x: baseScale.x * 0.75, y: baseScale.y * 0.75, z: baseScale.z * 0.75 };
+            wrapper.setAttribute('animation__shrink', {
+                property: 'scale', to: targetScale.x + ' ' + targetScale.y + ' ' + targetScale.z, dur: 500, easing: 'easeOutExpo'
+            });
+        }
+
+        function modalKapat() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('aktif'));
+            document.body.classList.remove('modal-open');
+
+            var wrapper = document.querySelector('#kafes-sistemi');
+            wrapper.setAttribute('animation__restore', {
+                property: 'scale', to: baseScale.x + ' ' + baseScale.y + ' ' + baseScale.z, dur: 600, easing: 'easeOutElastic'
+            });
+        }
     </script>
 </body>
 </html>
