@@ -3,19 +3,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eğitim Galaksisi - Tam Çember</title>
+    <title>Eğitim Galaksisi - Dikey Çember</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         // =================================================================
-        // 1. GALAKSİ VERİTABANI
+        // 1. GALAKSİ VERİTABANI (DEĞİŞMEDİ)
         // =================================================================
         const galaxyData = [
             {
-                id: "cube-genel",
-                title: "GENEL TEKNOLOJİ",
-                color: "#2d3436",
+                id: "cube-genel", title: "GENEL TEKNOLOJİ", color: "#2d3436",
                 faces: [
                     { txt: "AR", sub: "Artirilmis Gerceklik", col: "#ff4757", modal: "modal-ar" },
                     { txt: "VR", sub: "Sanal Gerceklik", col: "#3742fa", modal: "modal-vr" },
@@ -26,9 +24,7 @@
                 ]
             },
             {
-                id: "cube-yazilim",
-                title: "YAZILIM DÜNYASI",
-                color: "#2c3e50",
+                id: "cube-yazilim", title: "YAZILIM DÜNYASI", color: "#2c3e50",
                 faces: [
                     { txt: "PYTHON", sub: "Veri Bilimi", col: "#f1c40f", modal: "modal-python" },
                     { txt: "UNITY", sub: "Oyun Motoru", col: "#000000", modal: "modal-unity" },
@@ -39,9 +35,7 @@
                 ]
             },
             {
-                id: "cube-robotik",
-                title: "ROBOTİK & IOT",
-                color: "#192a56",
+                id: "cube-robotik", title: "ROBOTİK & IOT", color: "#192a56",
                 faces: [
                     { txt: "ARDUINO", sub: "Mikrodenetleyici", col: "#00979d", modal: "modal-arduino" },
                     { txt: "RASPBERRY", sub: "Mini Bilgisayar", col: "#c0392b", modal: "modal-pi" },
@@ -52,9 +46,7 @@
                 ]
             },
             {
-                id: "cube-tasarim",
-                title: "TASARIM & ÜRETİM",
-                color: "#4a0b0b",
+                id: "cube-tasarim", title: "TASARIM & ÜRETİM", color: "#4a0b0b",
                 faces: [
                     { txt: "TINKERCAD", sub: "Basit 3D", col: "#1abc9c", modal: "modal-tinker" },
                     { txt: "FUSION360", sub: "Muhendislik", col: "#e67e22", modal: "modal-fusion" },
@@ -65,9 +57,7 @@
                 ]
             },
             {
-                id: "cube-egitim",
-                title: "EĞİTİM YÖNTEMLERİ",
-                color: "#4834d4",
+                id: "cube-egitim", title: "EĞİTİM YÖNTEMLERİ", color: "#4834d4",
                 faces: [
                     { txt: "GAMIFY", sub: "Oyunlastirma", col: "#686de0", modal: "modal-game" },
                     { txt: "FLIPPED", sub: "Ters Yuz", col: "#30336b", modal: "modal-flip" },
@@ -83,7 +73,7 @@
         let isAnimating = false; 
 
         // =================================================================
-        // 2. GALAKSİ YÖNETİCİSİ (LAYOUT ENGINE)
+        // 2. GALAKSİ YÖNETİCİSİ (DİKEY DÜZENLEME)
         // =================================================================
         AFRAME.registerComponent('galaksi-yoneticisi', {
             init: function () {
@@ -94,11 +84,10 @@
                 const container = this.el;
                 const isMobile = window.matchMedia("(max-width: 768px)").matches;
                 
-                // AYARLAR BURADA:
-                // Yarıçapı daha da küçülttük, küpler merkeze çok daha yakın.
-                const radius = isMobile ? 1.8 : 2.5; 
+                // Yarıçap (Dikey çemberin genişliği)
+                const radius = isMobile ? 2.5 : 3.2; 
                 
-                // Merkez Küpün Konumu (Tam ortada)
+                // Merkez Küpün Konumu (Tam ortada, biraz önde)
                 const centerPos = {x:0, y:0, z:0};
                 
                 galaxyData.forEach((data, index) => {
@@ -110,32 +99,36 @@
                     if (index === 0) {
                         // MERKEZDEKİ KÜP
                         wrapper.setAttribute('position', centerPos);
-                        wrapper.setAttribute('scale', isMobile ? '0.45 0.45 0.45' : '0.6 0.6 0.6');
+                        wrapper.setAttribute('scale', isMobile ? '0.5 0.5 0.5' : '0.7 0.7 0.7');
                         wrapper.setAttribute('akilli-kontrol', 'enabled: true'); 
                     } else {
-                        // HALKADAKİ KÜPLER (TAM ÇEMBER FORMÜLÜ)
+                        // HALKADAKİ KÜPLER (DİKEY ÇEMBER FORMÜLÜ)
                         let totalRingItems = galaxyData.length - 1;
                         let itemIndex = index - 1;
                         
                         // 360 Derece Formülü
-                        let angle = (itemIndex / totalRingItems) * (Math.PI * 2);
+                        // Başlangıç açısını (Math.PI / 2) ekleyerek en üstten başlamasını sağladık.
+                        let angle = (itemIndex / totalRingItems) * (Math.PI * 2) + (Math.PI / 2);
 
+                        // DİKEY DÜZEN İÇİN X ve Y KULLANIYORUZ
                         let posX = Math.cos(angle) * radius;
-                        let posZ = Math.sin(angle) * radius;
+                        let posY = Math.sin(angle) * radius;
                         
-                        // Yüksekliği (Y) merkezle aynı yaptım.
-                        let posY = 0;
+                        // Derinlik (Z): Halkadaki küpler merkezden biraz daha arkada dursun.
+                        let posZ = -1.5;
 
                         wrapper.setAttribute('position', `${posX} ${posY} ${posZ}`);
-                        wrapper.setAttribute('scale', isMobile ? '0.25 0.25 0.25' : '0.3 0.3 0.3');
+                        wrapper.setAttribute('scale', isMobile ? '0.3 0.3 0.3' : '0.4 0.4 0.4');
                         
                         // Küpler merkeze baksın
-                        let lookAtPos = new THREE.Vector3(centerPos.x, centerPos.y, centerPos.z);
-                        wrapper.object3D.lookAt(lookAtPos);
+                        // let lookAtPos = new THREE.Vector3(centerPos.x, centerPos.y, centerPos.z);
+                        // wrapper.object3D.lookAt(lookAtPos);
+                        // Dikey düzende lookAt bazen ters dönebilir, manuel rotasyon daha güvenli:
+                        wrapper.setAttribute('rotation', '0 0 0');
                         
-                        // Yavaşça dönsünler
+                        // Yavaşça kendi etraflarında dönsünler
                         wrapper.setAttribute('animation__idle', {
-                            property: 'rotation.y', to: 360, dur: 20000, loop: true, easing: 'linear'
+                            property: 'rotation.y', to: 360, dur: 25000, loop: true, easing: 'linear'
                         });
                     }
 
@@ -151,7 +144,7 @@
                 let box = document.createElement('a-box');
                 box.setAttribute('color', data.color);
                 box.setAttribute('depth', 1); box.setAttribute('height', 1); box.setAttribute('width', 1);
-                box.setAttribute('material', 'roughness: 0.3; metalness: 0.1');
+                box.setAttribute('material', 'roughness: 0.4; metalness: 0.2');
                 parent.appendChild(box);
 
                 // YÜZEYLER
@@ -193,7 +186,7 @@
                     txt.setAttribute('align', 'center');
                     txt.setAttribute('position', '0 0.1 0.01');
                     let len = face.txt.length;
-                    let width = len > 6 ? 6 : (len > 3 ? 8 : 10);
+                    let width = len > 6 ? 7 : (len > 3 ? 9 : 11);
                     txt.setAttribute('width', width);
                     faceGroup.appendChild(txt);
 
@@ -201,7 +194,7 @@
                     sub.setAttribute('value', face.sub);
                     sub.setAttribute('align', 'center');
                     sub.setAttribute('position', '0 -0.2 0.01');
-                    sub.setAttribute('width', 3);
+                    sub.setAttribute('width', 3.5);
                     sub.setAttribute('color', '#ccc');
                     faceGroup.appendChild(sub);
 
@@ -211,7 +204,7 @@
         });
 
         // =================================================================
-        // 3. ETKİLEŞİM VE ANİMASYON
+        // 3. ETKİLEŞİM VE ANİMASYON (AYNI KALDI)
         // =================================================================
         AFRAME.registerComponent('galaksi-etkilesim', {
             schema: { id: {type: 'int'} },
@@ -239,7 +232,6 @@
                 if(isAnimating) return;
                 if(this.data.id === activeCubeId) return;
 
-                // KENARDAKİ KÜPÜ MERKEZE ÇEK
                 this.swapCubes(this.data.id);
             },
 
@@ -263,15 +255,15 @@
                 oldCenterEl.setAttribute('animation__scale', {
                     property: 'scale', to: targetScale, dur: 1000, easing: 'easeInOutQuart'
                 });
+                oldCenterEl.setAttribute('animation__rotreset', {
+                    property: 'rotation', to: '0 0 0', dur: 1000, easing: 'easeInOutQuart'
+                });
                 oldCenterEl.setAttribute('animation__idle', {
-                    property: 'rotation.y', to: 360, dur: 20000, loop: true, easing: 'linear', delay: 1000
+                    property: 'rotation.y', to: 360, dur: 25000, loop: true, easing: 'linear', delay: 1000
                 });
 
                 // Yeniyi merkeze al
                 newCenterEl.removeAttribute('animation__idle'); 
-                newCenterEl.setAttribute('animation__rotreset', {
-                    property: 'rotation', to: '0 0 0', dur: 500
-                });
                 newCenterEl.setAttribute('animation__move', {
                     property: 'position', to: centerPos, dur: 1000, easing: 'easeInOutQuart'
                 });
@@ -365,6 +357,7 @@
     </div>
 
     <div id="modal-ar" class="modal"><h2>AR Teknolojisi</h2><p>Gerçek dünyayı zenginleştirin.</p><button class="kapat-btn" onclick="modalKapat()">Kapat</button></div>
+    <div id="modal-vr" class="modal"><h2>VR Teknolojisi</h2><p>Sanal dünyalara dalın.</p><button class="kapat-btn" onclick="modalKapat()">Kapat</button></div>
     <a-scene background="color: #050505" cursor="rayOrigin: mouse" raycaster="objects: .tiklanabilir">
         
         <a-sky color="#050505"></a-sky>
@@ -372,9 +365,9 @@
 
         <a-light type="ambient" intensity="0.6"></a-light>
         <a-light type="directional" position="-2 4 4" intensity="1.5"></a-light>
-        <a-light type="point" position="0 2 0" intensity="2" distance="10" color="#a29bfe"></a-light>
+        <a-light type="point" position="0 2 2" intensity="1.5" distance="15" color="#a29bfe"></a-light>
 
-        <a-camera id="ana-kamera" position="0 0 5" rotation="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-camera id="ana-kamera" position="0 0 6" rotation="0 0 0" look-controls="enabled: false"></a-camera>
 
         <a-entity galaksi-yoneticisi position="0 0 0"></a-entity>
 
