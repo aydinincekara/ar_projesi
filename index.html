@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eğitim Galaksisi - Dikey Çember</title>
+    <title>Eğitim Galaksisi - Final</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         // =================================================================
-        // 1. GALAKSİ VERİTABANI (DEĞİŞMEDİ)
+        // 1. GALAKSİ VERİTABANI
         // =================================================================
         const galaxyData = [
             {
@@ -73,7 +73,7 @@
         let isAnimating = false; 
 
         // =================================================================
-        // 2. GALAKSİ YÖNETİCİSİ (DİKEY DÜZENLEME)
+        // 2. GALAKSİ YÖNETİCİSİ (BOYUTLANDIRMA VE YERLEŞİM)
         // =================================================================
         AFRAME.registerComponent('galaksi-yoneticisi', {
             init: function () {
@@ -84,10 +84,11 @@
                 const container = this.el;
                 const isMobile = window.matchMedia("(max-width: 768px)").matches;
                 
-                // Yarıçap (Dikey çemberin genişliği)
-                const radius = isMobile ? 2.5 : 3.2; 
+                // AYARLAR: Küplerin dağıldığı çemberin yarıçapı
+                // Yarıçapı küçülttük ki ekranın kenarlarına taşmasınlar.
+                const radius = isMobile ? 1.9 : 2.8; 
                 
-                // Merkez Küpün Konumu (Tam ortada, biraz önde)
+                // Merkez Küpün Konumu
                 const centerPos = {x:0, y:0, z:0};
                 
                 galaxyData.forEach((data, index) => {
@@ -97,36 +98,34 @@
                     wrapper.setAttribute('galaksi-etkilesim', `id: ${index}`);
                     
                     if (index === 0) {
-                        // MERKEZDEKİ KÜP
+                        // MERKEZDEKİ AKTİF KÜP (BÜYÜK)
                         wrapper.setAttribute('position', centerPos);
-                        wrapper.setAttribute('scale', isMobile ? '0.5 0.5 0.5' : '0.7 0.7 0.7');
+                        // Scale artırıldı: Mobilde 0.75, PC'de 1.0 (Dev gibi ve net)
+                        wrapper.setAttribute('scale', isMobile ? '0.75 0.75 0.75' : '1.0 1.0 1.0');
                         wrapper.setAttribute('akilli-kontrol', 'enabled: true'); 
                     } else {
-                        // HALKADAKİ KÜPLER (DİKEY ÇEMBER FORMÜLÜ)
+                        // HALKADAKİ PASİF KÜPLER (KÜÇÜK)
                         let totalRingItems = galaxyData.length - 1;
                         let itemIndex = index - 1;
                         
-                        // 360 Derece Formülü
-                        // Başlangıç açısını (Math.PI / 2) ekleyerek en üstten başlamasını sağladık.
+                        // Tam Çember (Dönme Dolap)
+                        // Başlangıç açısını ayarladık
                         let angle = (itemIndex / totalRingItems) * (Math.PI * 2) + (Math.PI / 2);
 
-                        // DİKEY DÜZEN İÇİN X ve Y KULLANIYORUZ
                         let posX = Math.cos(angle) * radius;
                         let posY = Math.sin(angle) * radius;
                         
-                        // Derinlik (Z): Halkadaki küpler merkezden biraz daha arkada dursun.
-                        let posZ = -1.5;
+                        // Derinlik (Z): Arkadakiler -2 metre geride dursun (Derinlik hissi)
+                        let posZ = -2.0;
 
                         wrapper.setAttribute('position', `${posX} ${posY} ${posZ}`);
-                        wrapper.setAttribute('scale', isMobile ? '0.3 0.3 0.3' : '0.4 0.4 0.4');
                         
-                        // Küpler merkeze baksın
-                        // let lookAtPos = new THREE.Vector3(centerPos.x, centerPos.y, centerPos.z);
-                        // wrapper.object3D.lookAt(lookAtPos);
-                        // Dikey düzende lookAt bazen ters dönebilir, manuel rotasyon daha güvenli:
+                        // Scale artırıldı: Mobilde 0.45, PC'de 0.6
+                        wrapper.setAttribute('scale', isMobile ? '0.45 0.45 0.45' : '0.6 0.6 0.6');
+                        
                         wrapper.setAttribute('rotation', '0 0 0');
                         
-                        // Yavaşça kendi etraflarında dönsünler
+                        // Yavaşça dönsünler
                         wrapper.setAttribute('animation__idle', {
                             property: 'rotation.y', to: 360, dur: 25000, loop: true, easing: 'linear'
                         });
@@ -204,7 +203,7 @@
         });
 
         // =================================================================
-        // 3. ETKİLEŞİM VE ANİMASYON (AYNI KALDI)
+        // 3. ETKİLEŞİM VE ANİMASYON
         // =================================================================
         AFRAME.registerComponent('galaksi-etkilesim', {
             schema: { id: {type: 'int'} },
@@ -247,28 +246,28 @@
                 let centerScale = oldCenterEl.getAttribute('scale');
                 let targetScale = newCenterEl.getAttribute('scale');
 
-                // Eskiyi yerine gönder
+                // 1. ESKİ MERKEZ -> YENİ YERİNE (Halkaya geri dönsün)
                 oldCenterEl.removeAttribute('akilli-kontrol');
                 oldCenterEl.setAttribute('animation__move', {
-                    property: 'position', to: targetPos, dur: 1000, easing: 'easeInOutQuart'
+                    property: 'position', to: targetPos, dur: 900, easing: 'easeInOutQuart'
                 });
                 oldCenterEl.setAttribute('animation__scale', {
-                    property: 'scale', to: targetScale, dur: 1000, easing: 'easeInOutQuart'
+                    property: 'scale', to: targetScale, dur: 900, easing: 'easeInOutQuart'
                 });
                 oldCenterEl.setAttribute('animation__rotreset', {
-                    property: 'rotation', to: '0 0 0', dur: 1000, easing: 'easeInOutQuart'
+                    property: 'rotation', to: '0 0 0', dur: 900, easing: 'easeInOutQuart'
                 });
                 oldCenterEl.setAttribute('animation__idle', {
                     property: 'rotation.y', to: 360, dur: 25000, loop: true, easing: 'linear', delay: 1000
                 });
 
-                // Yeniyi merkeze al
+                // 2. YENİ KÜP -> MERKEZE (Büyüyerek gelsin)
                 newCenterEl.removeAttribute('animation__idle'); 
                 newCenterEl.setAttribute('animation__move', {
-                    property: 'position', to: centerPos, dur: 1000, easing: 'easeInOutQuart'
+                    property: 'position', to: centerPos, dur: 900, easing: 'easeInOutQuart'
                 });
                 newCenterEl.setAttribute('animation__scale', {
-                    property: 'scale', to: centerScale, dur: 1000, easing: 'easeInOutQuart'
+                    property: 'scale', to: centerScale, dur: 900, easing: 'easeInOutQuart'
                 });
 
                 updateTitle(galaxyData[targetId].title);
@@ -278,11 +277,11 @@
                     newCenterEl.setAttribute('akilli-kontrol', 'enabled: true');
                     isAnimating = false;
                     if(navigator.vibrate) navigator.vibrate(50);
-                }, 1000);
+                }, 950);
             }
         });
 
-        // --- MERKEZ KÜP KONTROLÜ ---
+        // --- MERKEZ KÜP DÖNDÜRME ---
         AFRAME.registerComponent('akilli-kontrol', {
             schema: { enabled: {default: false} },
             init: function () {
