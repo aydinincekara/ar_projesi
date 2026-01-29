@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eğitim Galaksisi</title>
+    <title>Eğitim Galaksisi - Tam Çember</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         // =================================================================
-        // 1. GALAKSİ VERİTABANI (TÜM İÇERİK BURADA)
+        // 1. GALAKSİ VERİTABANI
         // =================================================================
         const galaxyData = [
             {
@@ -79,9 +79,8 @@
             }
         ];
 
-        // Global Durum Yönetimi
-        let activeCubeId = 0; // Şu an merkezdeki küpün indexi
-        let isAnimating = false; // Animasyon sırasında tıklamayı engellemek için
+        let activeCubeId = 0; 
+        let isAnimating = false; 
 
         // =================================================================
         // 2. GALAKSİ YÖNETİCİSİ (LAYOUT ENGINE)
@@ -95,64 +94,70 @@
                 const container = this.el;
                 const isMobile = window.matchMedia("(max-width: 768px)").matches;
                 
-                // Merkez ve Halka Ayarları
-                // Mobilde halkayı biraz daha dar yapıyoruz
-                const radius = isMobile ? 3.5 : 5; 
-                const centerPos = isMobile ? {x:0, y:1.3, z:-2} : {x:0, y:0, z:0};
+                // AYARLAR BURADA:
+                // Radius (Yarıçap): Sayıyı küçültürsen çember daralır (Yakınlaşır).
+                const radius = isMobile ? 2.2 : 3.0; // Eskiden 3.5 / 5 idi. Şimdi çok daha yakın.
+                
+                // Merkez Küpün Konumu
+                const centerPos = isMobile ? {x:0, y:0.5, z:0} : {x:0, y:0, z:0};
                 
                 galaxyData.forEach((data, index) => {
-                    // Küpü oluştur (HTML String yerine DOM metoduyla)
                     let wrapper = document.createElement('a-entity');
                     wrapper.setAttribute('id', `wrapper-${index}`);
                     wrapper.setAttribute('class', 'cube-wrapper');
                     wrapper.setAttribute('galaksi-etkilesim', `id: ${index}`);
                     
-                    // İlk pozisyonlama
                     if (index === 0) {
-                        // İlk küp merkezde
+                        // MERKEZDEKİ KÜP
                         wrapper.setAttribute('position', centerPos);
-                        wrapper.setAttribute('scale', isMobile ? '0.4 0.4 0.4' : '0.6 0.6 0.6');
-                        wrapper.setAttribute('akilli-kontrol', 'enabled: true'); // Sadece merkezdeki dönebilir
+                        wrapper.setAttribute('scale', isMobile ? '0.45 0.45 0.45' : '0.6 0.6 0.6');
+                        wrapper.setAttribute('akilli-kontrol', 'enabled: true'); 
                     } else {
-                        // Diğerleri halkada
-                        // Yarım daire formülü (180 dereceye yay)
-                        let angle = ((index - 1) / (galaxyData.length - 1)) * Math.PI - (Math.PI / 2); // -90 ile +90 arası
-                        // Biraz daha arkaya atmak için Z offset
-                        let posX = Math.sin(angle) * radius * 1.5; 
-                        let posZ = -Math.cos(angle) * radius * 0.8 - (isMobile ? 3 : 5);
+                        // HALKADAKİ KÜPLER (TAM ÇEMBER FORMÜLÜ)
+                        // index-1 diyerek merkezi saymıyoruz. 
+                        // Toplam eleman sayısını da (galaxyData.length - 1) alıyoruz.
                         
-                        wrapper.setAttribute('position', `${posX} ${isMobile?1.3:0} ${posZ}`);
-                        wrapper.setAttribute('scale', isMobile ? '0.25 0.25 0.25' : '0.35 0.35 0.35');
+                        let totalRingItems = galaxyData.length - 1;
+                        let itemIndex = index - 1;
                         
-                        // Halkadakiler merkeze baksın
+                        // 360 Derece Formülü: (index / toplam) * 2PI
+                        let angle = (itemIndex / totalRingItems) * (Math.PI * 2);
+
+                        let posX = Math.cos(angle) * radius;
+                        let posZ = Math.sin(angle) * radius;
+                        
+                        // Yüksekliği (Y) merkezden biraz aşağı aldım (-0.5) ki "Altar" gibi görünsün.
+                        let posY = isMobile ? 0 : -0.5;
+
+                        wrapper.setAttribute('position', `${posX} ${posY} ${posZ}`);
+                        wrapper.setAttribute('scale', isMobile ? '0.25 0.25 0.25' : '0.3 0.3 0.3');
+                        
+                        // Küpler merkeze baksın
                         let lookAtPos = new THREE.Vector3(centerPos.x, centerPos.y, centerPos.z);
                         wrapper.object3D.lookAt(lookAtPos);
                         
-                        // Yavaşça kendi etrafında dönsün (Idle Animation)
+                        // Yavaşça dönsünler
                         wrapper.setAttribute('animation__idle', {
                             property: 'rotation.y', to: 360, dur: 20000, loop: true, easing: 'linear'
                         });
                     }
 
-                    // KÜP GÖRSELİ OLUŞTURMA
                     this.createCubeVisuals(wrapper, data);
                     container.appendChild(wrapper);
                 });
 
-                // Başlığı güncelle
                 updateTitle(galaxyData[0].title);
             },
 
             createCubeVisuals: function(parent, data) {
-                // 1. Ana Kutu
+                // KUTU
                 let box = document.createElement('a-box');
                 box.setAttribute('color', data.color);
                 box.setAttribute('depth', 1); box.setAttribute('height', 1); box.setAttribute('width', 1);
                 box.setAttribute('material', 'roughness: 0.3; metalness: 0.1');
                 parent.appendChild(box);
 
-                // 2. Yüzeyler (Data'dan otomatik)
-                // Pozisyon ve rotasyon matrisi (Ön, Sağ, Arka, Sol, Üst, Alt)
+                // YÜZEYLER
                 const transforms = [
                     {pos: "0 0 0.51", rot: "0 0 0"},      // Ön
                     {pos: "0.51 0 0", rot: "0 90 0"},     // Sağ
@@ -167,29 +172,25 @@
                     faceGroup.setAttribute('position', transforms[i].pos);
                     faceGroup.setAttribute('rotation', transforms[i].rot);
 
-                    // Tıklanabilir Panel
+                    // Panel
                     let plane = document.createElement('a-plane');
                     plane.setAttribute('class', 'tiklanabilir');
                     plane.setAttribute('width', 1); plane.setAttribute('height', 1);
                     plane.setAttribute('color', face.col); plane.setAttribute('opacity', 0.15);
-                    plane.setAttribute('data-modal', face.modal); // Modal ID'si
                     
-                    // Panel Etkileşimi (Parlama ve Modal Açma)
                     plane.addEventListener('click', (e) => {
-                        // Sadece merkezdeki küpün yüzeyleri tıklanabilir olmalı
                         let parentID = parent.getAttribute('galaksi-etkilesim').id;
                         if(parseInt(parentID) === activeCubeId && !isAnimating) {
-                            // Parlama
                             plane.setAttribute('animation__flash', {property: 'material.opacity', from: 0.8, to: 0.15, dur: 300});
                             if(navigator.vibrate) navigator.vibrate(50);
                             modalAc(face.modal);
-                            e.stopPropagation(); // Küp değişimini tetikleme
+                            e.stopPropagation();
                         }
                     });
 
                     faceGroup.appendChild(plane);
 
-                    // Yazılar (Akıllı Boyutlandırma)
+                    // Yazılar
                     let txt = document.createElement('a-text');
                     txt.setAttribute('value', face.txt);
                     txt.setAttribute('align', 'center');
@@ -199,7 +200,6 @@
                     txt.setAttribute('width', width);
                     faceGroup.appendChild(txt);
 
-                    // Alt Yazı
                     let sub = document.createElement('a-text');
                     sub.setAttribute('value', face.sub);
                     sub.setAttribute('align', 'center');
@@ -214,31 +214,23 @@
         });
 
         // =================================================================
-        // 3. ETKİLEŞİM VE YER DEĞİŞTİRME (SWAP LOGIC)
+        // 3. ETKİLEŞİM VE ANİMASYON
         // =================================================================
         AFRAME.registerComponent('galaksi-etkilesim', {
             schema: { id: {type: 'int'} },
             init: function () {
                 this.timer = null;
-                this.isLongPress = false;
                 
-                // Mouse Down (Zamanlayıcı Başlat)
                 this.el.addEventListener('mousedown', (e) => this.startPress(e));
                 this.el.addEventListener('touchstart', (e) => this.startPress(e), {passive: false});
-
-                // Mouse Up (İşlem Yap)
                 this.el.addEventListener('mouseup', (e) => this.endPress(e));
                 this.el.addEventListener('touchend', (e) => this.endPress(e));
             },
 
             startPress: function(e) {
                 if(isAnimating) return;
-                this.isLongPress = false;
-                // 600ms basılı tutulursa "Uzun Basış" kabul et
                 this.timer = setTimeout(() => {
-                    this.isLongPress = true;
-                    if(navigator.vibrate) navigator.vibrate([50, 50, 50]); // Çift titreşim
-                    // Görsel geri bildirim (Hafif büyüme)
+                    if(navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     this.el.setAttribute('animation__pulse', {
                         property: 'scale', to: '1.2 1.2 1.2', dur: 200, dir: 'alternate', loop: 2
                     });
@@ -248,12 +240,9 @@
             endPress: function(e) {
                 if(this.timer) clearTimeout(this.timer);
                 if(isAnimating) return;
-
-                // Eğer bu küp zaten merkezdeyse ve uzun basılmadıysa hiçbir şey yapma (Döndürme motoru devrede)
                 if(this.data.id === activeCubeId) return;
 
-                // Eğer kenardaki bir küpse ve tıklandıysa -> MERKEZE GEL
-                // Uzun basış olsa da olmasa da merkeze gelsin (Tercih meselesi)
+                // KENARDAKİ KÜPÜ MERKEZE ÇEK
                 this.swapCubes(this.data.id);
             },
 
@@ -264,30 +253,25 @@
                 let oldCenterEl = document.querySelector(`#wrapper-${activeCubeId}`);
                 let newCenterEl = document.querySelector(`#wrapper-${targetId}`);
                 
-                // Pozisyonları kaydet
                 let centerPos = oldCenterEl.getAttribute('position');
                 let targetPos = newCenterEl.getAttribute('position');
-                
-                // Ölçekleri kaydet
                 let centerScale = oldCenterEl.getAttribute('scale');
                 let targetScale = newCenterEl.getAttribute('scale');
 
-                // 1. ESKİ MERKEZİ YENİ YERİNE GÖNDER
-                oldCenterEl.removeAttribute('akilli-kontrol'); // Kontrolü kapat
+                // Eskiyi yerine gönder
+                oldCenterEl.removeAttribute('akilli-kontrol');
                 oldCenterEl.setAttribute('animation__move', {
                     property: 'position', to: targetPos, dur: 1000, easing: 'easeInOutQuart'
                 });
                 oldCenterEl.setAttribute('animation__scale', {
                     property: 'scale', to: targetScale, dur: 1000, easing: 'easeInOutQuart'
                 });
-                // Eski merkez halkaya dönünce yavaşça dönmeye başlasın
                 oldCenterEl.setAttribute('animation__idle', {
                     property: 'rotation.y', to: 360, dur: 20000, loop: true, easing: 'linear', delay: 1000
                 });
 
-                // 2. YENİ KÜPÜ MERKEZE ÇEK
-                newCenterEl.removeAttribute('animation__idle'); // Dönmeyi bırak
-                // Rotasyonu sıfırla ki düzgün gelsin
+                // Yeniyi merkeze al
+                newCenterEl.removeAttribute('animation__idle'); 
                 newCenterEl.setAttribute('animation__rotreset', {
                     property: 'rotation', to: '0 0 0', dur: 500
                 });
@@ -298,26 +282,23 @@
                     property: 'scale', to: centerScale, dur: 1000, easing: 'easeInOutQuart'
                 });
 
-                // Başlığı Güncelle
                 updateTitle(galaxyData[targetId].title);
 
-                // Animasyon bitince
                 setTimeout(() => {
                     activeCubeId = targetId;
-                    newCenterEl.setAttribute('akilli-kontrol', 'enabled: true'); // Kontrolü aç
+                    newCenterEl.setAttribute('akilli-kontrol', 'enabled: true');
                     isAnimating = false;
-                    if(navigator.vibrate) navigator.vibrate(50); // İşlem bitti hissi
+                    if(navigator.vibrate) navigator.vibrate(50);
                 }, 1000);
             }
         });
 
-        // --- DÖNDÜRME MOTORU (Sadece Merkez Küp İçin) ---
+        // --- MERKEZ KÜP KONTROLÜ ---
         AFRAME.registerComponent('akilli-kontrol', {
             schema: { enabled: {default: false} },
             init: function () {
                 this.isDown = false;
                 this.lastX = 0; this.lastY = 0;
-                this.rotX = 0; this.rotY = 0;
                 
                 this.onDown = (e) => { 
                     if(!this.data.enabled) return;
@@ -330,10 +311,8 @@
                     if(!this.isDown || !this.data.enabled) return;
                     let cx = e.clientX || e.touches[0].clientX;
                     let cy = e.clientY || e.touches[0].clientY;
-                    
                     this.el.object3D.rotation.y += (cx - this.lastX) * 0.01;
                     this.el.object3D.rotation.x += (cy - this.lastY) * 0.01;
-                    
                     this.lastX = cx; this.lastY = cy;
                 };
 
@@ -349,46 +328,31 @@
         function updateTitle(text) {
             let el = document.getElementById('main-title');
             el.style.opacity = 0;
-            setTimeout(() => {
-                el.innerText = text;
-                el.style.opacity = 1;
-            }, 500);
+            setTimeout(() => { el.innerText = text; el.style.opacity = 1; }, 500);
         }
 
     </script>
 
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; }
-        
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         
-        .header {
-            position: absolute; top: 5%; width: 100%; text-align: center; pointer-events: none;
-        }
-        .header h1 {
-            margin: 0; font-size: 2.5rem; color: #fff; 
-            text-shadow: 0 0 20px rgba(255, 159, 67, 0.8);
-            letter-spacing: 3px; transition: opacity 0.5s;
-        }
+        .header { position: absolute; top: 5%; width: 100%; text-align: center; pointer-events: none; }
+        .header h1 { margin: 0; font-size: 2.2rem; color: #fff; text-shadow: 0 0 20px rgba(72, 52, 212, 0.8); letter-spacing: 2px; transition: opacity 0.5s; }
         .header p { color: #aaa; margin-top: 5px; font-weight: 300; }
 
-        .hint {
-            position: absolute; bottom: 30px; width: 100%; text-align: center;
-            color: rgba(255,255,255,0.4); font-size: 0.9rem; animation: pulse 2s infinite;
-        }
+        .hint { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.9rem; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
 
-        /* MODAL */
         .modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
-            width: 85%; max-width: 380px; 
-            background: rgba(15, 15, 20, 0.95);
+            width: 85%; max-width: 380px; background: rgba(15, 15, 20, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; 
             color: white; display: none; opacity: 0; pointer-events: auto; z-index: 99; 
-            box-shadow: 0 0 100px rgba(0,0,0,1); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 100px rgba(0,0,0,1); transition: 0.3s;
         }
         .modal.aktif { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .kapat-btn { background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        .kapat-btn { background: #ff4757; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
 
     </style>
 </head>
@@ -398,22 +362,24 @@
     <div id="ui-layer">
         <div class="header">
             <h1 id="main-title">YÜKLENİYOR...</h1>
-            <p>Diğer küplere tıklayarak değiştirin</p>
+            <p>Halkadan bir küp seçin</p>
         </div>
-        <div class="hint">Uzun basarak seçim onayı alabilirsiniz</div>
+        <div class="hint">Merkezdeki küpü çevirebilir, diğerlerine tıklayıp çağırabilirsiniz</div>
     </div>
 
-    <div id="modal-ar" class="modal"><h2>AR Teknolojisi</h2><p>Sınıf duvarlarını yıkın.</p><button class="kapat-btn" onclick="modalKapat()">Kapat</button></div>
+    <div id="modal-ar" class="modal"><h2>AR Teknolojisi</h2><p>Gerçek dünyayı zenginleştirin.</p><button class="kapat-btn" onclick="modalKapat()">Kapat</button></div>
     <a-scene background="color: #050505" cursor="rayOrigin: mouse" raycaster="objects: .tiklanabilir">
         
         <a-sky color="#050505"></a-sky>
-        <a-entity position="0 0 0" particle-system="preset: dust; color: #ffffff; particleCount: 1000"></a-entity>
+        <a-entity position="0 0 0" particle-system="preset: dust; color: #ffffff; particleCount: 500"></a-entity>
 
         <a-light type="ambient" intensity="0.6"></a-light>
-        <a-light type="directional" position="-2 4 4" intensity="1.5" color="#ffffff"></a-light>
-        <a-light type="point" position="0 2 0" intensity="2" distance="10" color="#ff9f43"></a-light>
+        <a-light type="directional" position="-2 4 4" intensity="1.5"></a-light>
+        <a-light type="point" position="0 2 0" intensity="2" distance="10" color="#a29bfe"></a-light>
 
-        <a-camera id="ana-kamera" position="0 0 4" look-controls="enabled: false"></a-camera>
+        <a-camera id="ana-kamera" position="0 2 5" rotation="-15 0 0" look-controls="enabled: false"></a-camera>
+
+        <a-ring color="#ffffff" opacity="0.1" radius-inner="2.1" radius-outer="2.2" rotation="-90 0 0" position="0 -0.8 0"></a-ring>
 
         <a-entity galaksi-yoneticisi position="0 0 0"></a-entity>
 
@@ -425,9 +391,7 @@
             if(m) {
                 document.querySelectorAll('.modal').forEach(x => x.classList.remove('aktif'));
                 m.classList.add('aktif');
-            } else {
-                alert("Bu özellik yakında eklenecek: " + id);
-            }
+            } else { alert("İçerik hazırlanıyor: " + id); }
         }
         function modalKapat() { document.querySelectorAll('.modal').forEach(x => x.classList.remove('aktif')); }
     </script>
