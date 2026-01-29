@@ -95,11 +95,11 @@
                 const isMobile = window.matchMedia("(max-width: 768px)").matches;
                 
                 // AYARLAR BURADA:
-                // Radius (Yarıçap): Sayıyı küçültürsen çember daralır (Yakınlaşır).
-                const radius = isMobile ? 2.2 : 3.0; // Eskiden 3.5 / 5 idi. Şimdi çok daha yakın.
+                // Yarıçapı daha da küçülttük, küpler merkeze çok daha yakın.
+                const radius = isMobile ? 1.8 : 2.5; 
                 
-                // Merkez Küpün Konumu
-                const centerPos = isMobile ? {x:0, y:0.5, z:0} : {x:0, y:0, z:0};
+                // Merkez Küpün Konumu (Tam ortada)
+                const centerPos = {x:0, y:0, z:0};
                 
                 galaxyData.forEach((data, index) => {
                     let wrapper = document.createElement('a-entity');
@@ -114,20 +114,17 @@
                         wrapper.setAttribute('akilli-kontrol', 'enabled: true'); 
                     } else {
                         // HALKADAKİ KÜPLER (TAM ÇEMBER FORMÜLÜ)
-                        // index-1 diyerek merkezi saymıyoruz. 
-                        // Toplam eleman sayısını da (galaxyData.length - 1) alıyoruz.
-                        
                         let totalRingItems = galaxyData.length - 1;
                         let itemIndex = index - 1;
                         
-                        // 360 Derece Formülü: (index / toplam) * 2PI
+                        // 360 Derece Formülü
                         let angle = (itemIndex / totalRingItems) * (Math.PI * 2);
 
                         let posX = Math.cos(angle) * radius;
                         let posZ = Math.sin(angle) * radius;
                         
-                        // Yüksekliği (Y) merkezden biraz aşağı aldım (-0.5) ki "Altar" gibi görünsün.
-                        let posY = isMobile ? 0 : -0.5;
+                        // Yüksekliği (Y) merkezle aynı yaptım.
+                        let posY = 0;
 
                         wrapper.setAttribute('position', `${posX} ${posY} ${posZ}`);
                         wrapper.setAttribute('scale', isMobile ? '0.25 0.25 0.25' : '0.3 0.3 0.3');
@@ -377,9 +374,7 @@
         <a-light type="directional" position="-2 4 4" intensity="1.5"></a-light>
         <a-light type="point" position="0 2 0" intensity="2" distance="10" color="#a29bfe"></a-light>
 
-        <a-camera id="ana-kamera" position="0 2 5" rotation="-15 0 0" look-controls="enabled: false"></a-camera>
-
-        <a-ring color="#ffffff" opacity="0.1" radius-inner="2.1" radius-outer="2.2" rotation="-90 0 0" position="0 -0.8 0"></a-ring>
+        <a-camera id="ana-kamera" position="0 0 5" rotation="0 0 0" look-controls="enabled: false"></a-camera>
 
         <a-entity galaksi-yoneticisi position="0 0 0"></a-entity>
 
