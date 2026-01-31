@@ -3,77 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>AR Projesi v3.0.0</title>
+    <title>AR Projesi v3.1.0</title>
 
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* ARAYÜZ STİLLERİ */
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* GENEL STİLLER */
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         
-        /* Sağ Üst Köşe Kapsayıcı */
+        /* SAĞ ÜST MENÜ */
         #top-right-ui {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            position: absolute; top: 15px; right: 15px; z-index: 10000;
+            display: flex; align-items: center; gap: 10px;
         }
 
-        /* Versiyon Etiketi */
         .version-badge {
-            background: rgba(0, 0, 0, 0.7);
-            color: #00d2d3; /* Neon Mavi */
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7); color: #00d2d3;
+            padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 14px;
             border: 1px solid #00d2d3;
-            box-shadow: 0 0 10px rgba(0, 210, 211, 0.3);
         }
 
-        /* Menü Butonu */
-        .menu-btn {
-            background: #ff9f43;
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 10px rgba(255, 159, 67, 0.5);
-            transition: transform 0.2s;
+        .icon-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s; color: white;
         }
-        .menu-btn:active { transform: scale(0.9); }
+        .icon-btn:active { transform: scale(0.9); }
 
-        /* Günlük (Log) Penceresi */
-        #changelog-modal {
-            display: none; /* Başlangıçta gizli */
-            position: absolute;
-            top: 70px;
-            right: 15px;
-            width: 300px;
-            max-height: 80vh;
-            background: rgba(20, 20, 30, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            z-index: 10001;
-            color: white;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        /* Buton Renkleri */
+        .btn-log { background: #ff9f43; box-shadow: 0 0 10px rgba(255, 159, 67, 0.5); }
+        .btn-info { background: #5f27cd; box-shadow: 0 0 10px rgba(95, 39, 205, 0.5); }
+
+        /* PENCERELER (MODAL) */
+        .ui-modal {
+            display: none; position: absolute; top: 70px; right: 15px;
+            width: 320px; max-height: 80vh; background: rgba(20, 20, 30, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
+            padding: 20px; z-index: 10001; color: white; overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
         }
 
-        /* Tablo Stilleri */
+        /* TABLO VE METİN STİLLERİ */
+        h3 { margin: 0 0 15px 0; border-bottom: 1px solid #444; padding-bottom: 10px; color: #ff9f43; }
+        .info-title { color: #00d2d3; margin-top: 15px; margin-bottom: 5px; font-size: 1.1rem; }
+        .info-text { font-size: 0.9rem; color: #ccc; line-height: 1.5; margin-bottom: 10px; }
+        
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { text-align: left; border-bottom: 2px solid #555; padding: 8px 0; color: #ff9f43; }
         td { border-bottom: 1px solid #333; padding: 8px 0; vertical-align: top; }
@@ -86,34 +62,38 @@
 <body>
 
     <div id="top-right-ui">
-        <div class="version-badge" id="current-version">v3.0.0</div>
-        <button class="menu-btn" onclick="toggleLog()"><i class="fa-solid fa-list-check"></i></button>
+        <div class="version-badge" id="current-version">v3.1.0</div>
+        <button class="icon-btn btn-info" onclick="toggleModal('info-modal')"><i class="fa-solid fa-circle-info"></i></button>
+        <button class="icon-btn btn-log" onclick="toggleModal('log-modal')"><i class="fa-solid fa-list-check"></i></button>
     </div>
 
-    <div id="changelog-modal">
-        <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px;">Geliştirici Günlüğü</h3>
+    <div id="info-modal" class="ui-modal">
+        <h3><i class="fa-solid fa-book-open"></i> Bilgilendirme</h3>
+        <div id="info-content">
+            </div>
+    </div>
+
+    <div id="log-modal" class="ui-modal">
+        <h3><i class="fa-solid fa-timeline"></i> Geliştirici Günlüğü</h3>
         <table id="log-table">
-            <thead>
-                <tr>
-                    <th>Sürüm</th>
-                    <th>Detaylar</th>
-                </tr>
-            </thead>
-            <tbody id="log-body">
-                </tbody>
+            <thead><tr><th>Sürüm</th><th>Detaylar</th></tr></thead>
+            <tbody id="log-body"></tbody>
         </table>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" vr-mode-ui="enabled: false">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;" vr-mode-ui="enabled: false">
         
-        <a-marker preset="hiro">
+        <a-marker type="pattern" url="qr/pattern-ar_projesi.patt">
             
-            <a-box position="0 0.5 0" 
-                   material="color: #00d2d3; opacity: 0.8; transparent: true;"
-                   animation="property: rotation; to: 0 360 0; loop: true; dur: 5000">
-            </a-box>
-            
-            <a-text value="AR v3.0.0" position="0 1.5 0" align="center" color="white" scale="2 2 2"></a-text>
+            <a-entity position="0 0 0" rotation="0 0 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+                
+                <a-box position="0 0.5 0" material="color: #5f27cd; opacity: 0.9;" scale="1 1 1"></a-box>
+                
+                <a-text value="QR TANIMLANDI" position="0 1.5 0" align="center" color="#00d2d3" scale="2 2 2"></a-text>
+                
+                <a-ring color="white" radius-inner="1.2" radius-outer="1.3" rotation="-90 0 0"></a-ring>
+
+            </a-entity>
 
         </a-marker>
 
@@ -122,57 +102,58 @@
     </a-scene>
 
     <script>
-        // ============================================
-        // VERSİYON VE GÜNLÜK VERİTABANI
-        // ============================================
-        const appVersion = "v3.0.0";
-        
-        // Buraya her yeni güncellemede en üste yeni bir satır ekleyeceğiz
-        const logs = [
-            { 
-                ver: "v3.0.0", 
-                date: "31.01.2026", 
-                desc: "⚠️ Büyük Sıfırlama. Proje AR tabanına taşındı. WebAR motoru entegre edildi. Versiyon takip menüsü eklendi." 
+        const appVersion = "v3.1.0";
+        document.getElementById('current-version').innerText = appVersion;
+
+        // --- BİLGİ VERİTABANI ---
+        const infoData = [
+            {
+                title: "Kamera İzni Hakkında",
+                text: "Bu uygulama, Artırılmış Gerçeklik (AR) deneyimi sunmak için kameranızı kullanır. Kameranız, sadece QR kodunu/işaretçiyi tanımak ve üzerine dijital içerik yerleştirmek için anlık olarak kullanılır. Görüntüler sunucularımıza KAYDEDİLMEZ."
             },
-            { 
-                ver: "v2.5.0", 
-                date: "30.01.2026", 
-                desc: "Çoklu küp sistemi ve slot mekanizması denenmişti. (ARşivlendi)" 
+            {
+                title: "AR Teknolojisi Nedir?",
+                text: "Artırılmış Gerçeklik, gerçek dünya görüntüsünün üzerine bilgisayar tarafından üretilen ses, video, grafik veya GPS verilerinin eklenmesidir. Bu projede, özel QR kodunu okuttuğunuzda kağıdın üzerinde 3D modeller canlanacaktır."
             },
-            { 
-                ver: "v1.0.0", 
-                date: "01.01.2026", 
-                desc: "İlk proje başlangıcı." 
+            {
+                title: "Nasıl Çalışır?",
+                text: "Kameranızı sitemizin özel QR koduna (desenine) doğrultun. Yazılım deseni tanıdığında, ekranınızda otomatik olarak 3D içerikler belirecektir."
             }
         ];
 
-        // 1. Güncel Versiyonu Yaz
-        document.getElementById('current-version').innerText = appVersion;
+        // --- GÜNLÜK VERİTABANI ---
+        const logs = [
+            { ver: "v3.1.0", date: "01.02.2026", desc: "Özel Marker (qr/pattern-ar_projesi.patt) entegre edildi. Bilgilendirme penceresi eklendi." },
+            { ver: "v3.0.0", date: "31.01.2026", desc: "Proje AR tabanına taşındı. WebAR motoru entegre edildi." },
+            { ver: "v2.5.0", date: "30.01.2026", desc: "Çoklu küp sistemi denemeleri. (Arşivlendi)" }
+        ];
 
-        // 2. Tabloyu Doldur
-        const tableBody = document.getElementById('log-body');
-        
-        logs.forEach(log => {
-            let row = `
-                <tr>
-                    <td class="ver-col">
-                        ${log.ver}
-                        <span class="date-col">${log.date}</span>
-                    </td>
-                    <td>${log.desc}</td>
-                </tr>
+        // 1. Bilgi İçeriğini Doldur
+        const infoContainer = document.getElementById('info-content');
+        infoData.forEach(item => {
+            infoContainer.innerHTML += `
+                <h4 class="info-title"><i class="fa-solid fa-angle-right"></i> ${item.title}</h4>
+                <p class="info-text">${item.text}</p>
             `;
-            tableBody.innerHTML += row;
         });
 
-        // 3. Menü Aç/Kapa Fonksiyonu
-        function toggleLog() {
-            const modal = document.getElementById('changelog-modal');
-            if (modal.style.display === 'block') {
-                modal.style.display = 'none';
-            } else {
-                modal.style.display = 'block';
-            }
+        // 2. Günlük Tablosunu Doldur
+        const tableBody = document.getElementById('log-body');
+        logs.forEach(log => {
+            tableBody.innerHTML += `
+                <tr>
+                    <td class="ver-col">${log.ver}<span class="date-col">${log.date}</span></td>
+                    <td>${log.desc}</td>
+                </tr>`;
+        });
+
+        // 3. Pencere Aç/Kapa
+        function toggleModal(id) {
+            document.querySelectorAll('.ui-modal').forEach(m => {
+                if(m.id !== id) m.style.display = 'none';
+            });
+            const modal = document.getElementById(id);
+            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
         }
     </script>
 </body>
