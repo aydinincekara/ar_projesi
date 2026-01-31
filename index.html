@@ -1,309 +1,179 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eğitim Galaksisi - Slot Sistemi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>AR Projesi v3.0.0</title>
+
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script>
-        // =================================================================
-        // 1. İÇERİK VERİTABANI
-        // =================================================================
-        const galaxyData = [
-            { id: 0, title: "GENEL TEKNOLOJİ", color: "#2d3436", faces: [{t:"AR", s:"Artirilmis", c:"#ff4757", m:"modal-ar"}, {t:"VR", s:"Sanal", c:"#3742fa", m:"modal-vr"}, {t:"STEM", s:"Maker", c:"#2ed573", m:"modal-stem"}, {t:"AI", s:"Yapay Zeka", c:"#ffa502", m:"modal-ai"}, {t:"3D", s:"Uretim", c:"#ff6348", m:"modal-print"}, {t:"SCAN", s:"Tarama", c:"#5352ed", m:"modal-scan"}] },
-            { id: 1, title: "YAZILIM DÜNYASI", color: "#2c3e50", faces: [{t:"PYTHON", s:"Veri", c:"#f1c40f", m:"modal-python"}, {t:"UNITY", s:"Oyun", c:"#000000", m:"modal-unity"}, {t:"C#", s:"Kodlama", c:"#9b59b6", m:"modal-csharp"}, {t:"WEB", s:"HTML/CSS", c:"#e67e22", m:"modal-web"}, {t:"JAVA", s:"Mobil", c:"#e74c3c", m:"modal-java"}, {t:"SQL", s:"Veri", c:"#34495e", m:"modal-sql"}] },
-            { id: 2, title: "ROBOTİK & IOT", color: "#192a56", faces: [{t:"ARDUINO", s:"Robotik", c:"#00979d", m:"modal-arduino"}, {t:"R.PI", s:"Mini PC", c:"#c0392b", m:"modal-pi"}, {t:"SENSOR", s:"Algilama", c:"#27ae60", m:"modal-sensor"}, {t:"IOT", s:"Akilli Ev", c:"#8e44ad", m:"modal-iot"}, {t:"MOTOR", s:"Hareket", c:"#f39c12", m:"modal-motor"}, {t:"DRONE", s:"IHA", c:"#2980b9", m:"modal-drone"}] },
-            { id: 3, title: "TASARIM & ÜRETİM", color: "#4a0b0b", faces: [{t:"TINKER", s:"Basit 3D", c:"#1abc9c", m:"modal-tinker"}, {t:"FUSION", s:"CAD", c:"#e67e22", m:"modal-fusion"}, {t:"BLENDER", s:"Sanat", c:"#d35400", m:"modal-blender"}, {t:"CURA", s:"Dilimleme", c:"#3498db", m:"modal-cura"}, {t:"LASER", s:"Kesim", c:"#c0392b", m:"modal-laser"}, {t:"CNC", s:"Imalat", c:"#7f8c8d", m:"modal-cnc"}] },
-            { id: 4, title: "EĞİTİM YÖNTEMLERİ", color: "#4834d4", faces: [{t:"OYUN", s:"Gamify", c:"#686de0", m:"modal-game"}, {t:"TERS", s:"Flipped", c:"#30336b", m:"modal-flip"}, {t:"PROJE", s:"PBL", c:"#be2edd", m:"modal-pbl"}, {t:"AKRAN", s:"Peer", c:"#22a6b3", m:"modal-peer"}, {t:"ONLNE", s:"Zoom", c:"#eb4d4b", m:"modal-zoom"}, {t:"HIBRT", s:"Karma", c:"#f0932b", m:"modal-hybrid"}] }
-        ];
-
-        // =================================================================
-        // 2. SABİT SLOT SİSTEMİ (KOORDİNAT HARİTASI)
-        // =================================================================
-        let slots = []; // Tüm sabit pozisyonlar burada tutulacak
-        let cubeCurrentSlot = []; // Hangi küp hangi slotta? [Küp0->Slot0, Küp1->Slot1...]
-        let isAnimating = false; // Kilit mekanizması
-
-        function calculateSlots(isMobile) {
-            slots = [];
-            
-            // SLOT 0: MERKEZ (KRAL KOLTUĞU)
-            slots.push({ x: 0, y: 0, z: 0, scale: isMobile ? '0.75 0.75 0.75' : '1.0 1.0 1.0' });
-
-            // SLOT 1..N: ÇEMBER (HALKA KOLTUKLARI)
-            const totalRingItems = galaxyData.length - 1;
-            const radius = isMobile ? 1.9 : 2.8; 
-            
-            for(let i=0; i<totalRingItems; i++) {
-                // Saat 12 yönünden başlasın diye +PI/2 ekliyoruz
-                let angle = (i / totalRingItems) * (Math.PI * 2) + (Math.PI / 2);
-                slots.push({
-                    x: Math.cos(angle) * radius,
-                    y: Math.sin(angle) * radius,
-                    z: -2.0, // Derinlik
-                    scale: isMobile ? '0.45 0.45 0.45' : '0.6 0.6 0.6'
-                });
-            }
-        }
-
-        // =================================================================
-        // 3. GALAKSİ YÖNETİCİSİ
-        // =================================================================
-        AFRAME.registerComponent('galaksi-yoneticisi', {
-            init: function () {
-                const isMobile = window.matchMedia("(max-width: 768px)").matches;
-                calculateSlots(isMobile); // Slotları hesapla ve sabitle
-
-                const container = this.el;
-
-                // Küpleri oluştur ve başlangıç slotlarına yerleştir
-                galaxyData.forEach((data, index) => {
-                    let wrapper = document.createElement('a-entity');
-                    wrapper.setAttribute('id', `cube-${index}`); // Küp ID'si sabit
-                    wrapper.setAttribute('galaksi-etkilesim', `id: ${index}`);
-                    
-                    // Başlangıçta Küp 0 -> Slot 0, Küp 1 -> Slot 1...
-                    cubeCurrentSlot[index] = index; 
-                    
-                    let targetSlot = slots[index];
-                    
-                    // Pozisyonu ata
-                    wrapper.setAttribute('position', `${targetSlot.x} ${targetSlot.y} ${targetSlot.z}`);
-                    wrapper.setAttribute('scale', targetSlot.scale);
-
-                    // Sadece merkezdeki (Slot 0) dönme kontrolüne sahip olsun
-                    if(index === 0) {
-                        wrapper.setAttribute('akilli-kontrol', 'enabled: true');
-                    } else {
-                        // Diğerleri kendi ekseninde yavaşça dönsün
-                        wrapper.setAttribute('animation__idle', {
-                            property: 'rotation.y', to: 360, dur: 25000, loop: true, easing: 'linear'
-                        });
-                    }
-
-                    this.createCubeVisuals(wrapper, data);
-                    container.appendChild(wrapper);
-                });
-
-                updateTitle(galaxyData[0].title);
-            },
-
-            createCubeVisuals: function(parent, data) {
-                // KUTU
-                let box = document.createElement('a-box');
-                box.setAttribute('color', data.color);
-                box.setAttribute('depth', 1); box.setAttribute('height', 1); box.setAttribute('width', 1);
-                box.setAttribute('material', 'roughness: 0.4; metalness: 0.2');
-                parent.appendChild(box);
-
-                // YÜZEYLER
-                const transforms = [
-                    {p:"0 0 0.51", r:"0 0 0"}, {p:"0.51 0 0", r:"0 90 0"}, {p:"0 0 -0.51", r:"0 180 0"},
-                    {p:"-0.51 0 0", r:"0 -90 0"}, {p:"0 0.51 0", r:"-90 0 0"}, {p:"0 -0.51 0", r:"90 0 0"}
-                ];
-
-                data.faces.forEach((face, i) => {
-                    let grp = document.createElement('a-entity');
-                    grp.setAttribute('position', transforms[i].p);
-                    grp.setAttribute('rotation', transforms[i].r);
-
-                    let plane = document.createElement('a-plane');
-                    plane.setAttribute('class', 'tiklanabilir');
-                    plane.setAttribute('width', 1); plane.setAttribute('height', 1);
-                    plane.setAttribute('color', face.c); plane.setAttribute('opacity', 0.15);
-                    
-                    plane.addEventListener('click', (e) => {
-                        // Sadece merkezdeki küp (Slot 0'da olan) tıklanabilir
-                        let myCubeIndex = parseInt(parent.getAttribute('galaksi-etkilesim').id);
-                        if(cubeCurrentSlot[myCubeIndex] === 0 && !isAnimating) {
-                            plane.setAttribute('animation__flash', {property: 'material.opacity', from: 0.8, to: 0.15, dur: 300});
-                            if(navigator.vibrate) navigator.vibrate(50);
-                            modalAc(face.m);
-                            e.stopPropagation();
-                        }
-                    });
-                    grp.appendChild(plane);
-
-                    let txt = document.createElement('a-text');
-                    txt.setAttribute('value', face.t);
-                    txt.setAttribute('align', 'center');
-                    txt.setAttribute('position', '0 0.1 0.01');
-                    txt.setAttribute('width', face.t.length > 5 ? 7 : 9);
-                    grp.appendChild(txt);
-
-                    parent.appendChild(grp);
-                });
-            }
-        });
-
-        // =================================================================
-        // 4. ETKİLEŞİM VE SLOT DEĞİŞİMİ (SWAP LOGIC)
-        // =================================================================
-        AFRAME.registerComponent('galaksi-etkilesim', {
-            schema: { id: {type: 'int'} },
-            init: function () {
-                this.timer = null;
-                // Event Listener'lar
-                const start = (e) => {
-                    if(isAnimating) return;
-                    this.timer = setTimeout(() => {
-                        if(navigator.vibrate) navigator.vibrate(50);
-                        this.el.setAttribute('animation__pulse', {property: 'scale', to: '1.2 1.2 1.2', dur: 200, dir: 'alternate', loop: 2});
-                    }, 600);
-                };
-                const end = (e) => {
-                    if(this.timer) clearTimeout(this.timer);
-                    if(isAnimating) return;
-                    
-                    // Tıklanan küpün şu anki slotunu bul
-                    let mySlot = cubeCurrentSlot[this.data.id];
-
-                    // Eğer zaten merkezdeyse (Slot 0) işlem yapma
-                    if(mySlot === 0) return;
-
-                    // DEĞİŞİMİ BAŞLAT
-                    swapSlots(this.data.id);
-                };
-
-                this.el.addEventListener('mousedown', start);
-                this.el.addEventListener('touchstart', start, {passive:false});
-                this.el.addEventListener('mouseup', end);
-                this.el.addEventListener('touchend', end);
-            }
-        });
-
-        function swapSlots(clickedCubeId) {
-            isAnimating = true;
-
-            // 1. KİMLER YER DEĞİŞTİRECEK?
-            // Merkezdeki küpü bul (Slot 0'da olan kim?)
-            let centerCubeId = cubeCurrentSlot.findIndex(slot => slot === 0);
-            
-            // Tıklanan küp zaten 'clickedCubeId'
-            let clickedCubeSlotIndex = cubeCurrentSlot[clickedCubeId];
-
-            // 2. DOM ELEMENTLERİNİ SEÇ
-            let centerEl = document.getElementById(`cube-${centerCubeId}`);
-            let clickedEl = document.getElementById(`cube-${clickedCubeId}`);
-
-            // 3. HEDEF KOORDİNATLARI BELİRLE (SLOTLARDAN AL)
-            let centerTarget = slots[clickedCubeSlotIndex]; // Merkezdekini kenara gönder
-            let clickedTarget = slots[0]; // Kenardakini merkeze çek
-
-            // 4. ANİMASYONLARI TETİKLE
-            
-            // A) Merkezdekini Kenara Gönder
-            centerEl.removeAttribute('akilli-kontrol'); // Kontrolü al
-            centerEl.setAttribute('animation__pos', {
-                property: 'position', to: `${centerTarget.x} ${centerTarget.y} ${centerTarget.z}`, dur: 800, easing: 'easeInOutQuart'
-            });
-            centerEl.setAttribute('animation__scale', {
-                property: 'scale', to: centerTarget.scale, dur: 800, easing: 'easeInOutQuart'
-            });
-            centerEl.setAttribute('animation__rotreset', {
-                property: 'rotation', to: '0 0 0', dur: 800 
-            });
-            // Kenara gidince dönmeye başlasın
-            centerEl.setAttribute('animation__idle', {
-                property: 'rotation.y', to: 360, dur: 25000, loop: true, easing: 'linear', delay: 800
-            });
-
-            // B) Kenardakini Merkeze Çek
-            clickedEl.removeAttribute('animation__idle'); // Dönmeyi bırak
-            clickedEl.setAttribute('animation__pos', {
-                property: 'position', to: `${clickedTarget.x} ${clickedTarget.y} ${clickedTarget.z}`, dur: 800, easing: 'easeInOutQuart'
-            });
-            clickedEl.setAttribute('animation__scale', {
-                property: 'scale', to: clickedTarget.scale, dur: 800, easing: 'easeInOutQuart'
-            });
-
-            // Başlığı Güncelle
-            updateTitle(galaxyData[clickedCubeId].title);
-
-            // 5. DATA GÜNCELLEME (EN ÖNEMLİ KISIM)
-            // Animasyon bitiminde slot verilerini güncelle
-            setTimeout(() => {
-                // Slotları veritabanında değiştir
-                cubeCurrentSlot[centerCubeId] = clickedCubeSlotIndex;
-                cubeCurrentSlot[clickedCubeId] = 0;
-
-                // Yeni merkez küpe kontrol ver
-                clickedEl.setAttribute('akilli-kontrol', 'enabled: true');
-                
-                isAnimating = false;
-                if(navigator.vibrate) navigator.vibrate(50);
-            }, 850);
-        }
-
-        // --- MERKEZ KÜP DÖNDÜRME ---
-        AFRAME.registerComponent('akilli-kontrol', {
-            schema: { enabled: {default: false} },
-            init: function () {
-                this.isDown = false; this.lastX = 0; this.lastY = 0;
-                
-                const d = (e)=>{ if(!this.data.enabled)return; this.isDown=true; this.lastX=e.clientX||e.touches[0].clientX; this.lastY=e.clientY||e.touches[0].clientY; };
-                const u = ()=>{ this.isDown=false; };
-                const m = (e)=>{ if(!this.isDown||!this.data.enabled)return; let cx=e.clientX||e.touches[0].clientX; let cy=e.clientY||e.touches[0].clientY; 
-                    this.el.object3D.rotation.y += (cx-this.lastX)*0.01; 
-                    this.el.object3D.rotation.x += (cy-this.lastY)*0.01; 
-                    this.lastX=cx; this.lastY=cy; 
-                };
-                window.addEventListener('mousedown',d); window.addEventListener('touchstart',d,{passive:false});
-                window.addEventListener('mouseup',u); window.addEventListener('touchend',u);
-                window.addEventListener('mousemove',m); window.addEventListener('touchmove',m,{passive:false});
-            }
-        });
-
-        function updateTitle(text) {
-            let el = document.getElementById('main-title');
-            el.style.opacity = 0;
-            setTimeout(() => { el.innerText = text; el.style.opacity = 1; }, 400);
-        }
-    </script>
-
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        .header { position: absolute; top: 5%; width: 100%; text-align: center; }
-        .header h1 { margin: 0; font-size: 2.2rem; color: #fff; text-shadow: 0 0 20px rgba(72, 52, 212, 0.8); transition: opacity 0.5s; }
-        .header p { color: #aaa; margin-top: 5px; }
-        .hint { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+        /* ARAYÜZ STİLLERİ */
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Sağ Üst Köşe Kapsayıcı */
+        #top-right-ui {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); width: 85%; max-width: 380px; background: rgba(15, 15, 20, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; color: white; display: none; opacity: 0; pointer-events: auto; z-index: 99; transition: 0.3s; }
-        .modal.aktif { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .kapat-btn { background: #ff4757; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        /* Versiyon Etiketi */
+        .version-badge {
+            background: rgba(0, 0, 0, 0.7);
+            color: #00d2d3; /* Neon Mavi */
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 1px solid #00d2d3;
+            box-shadow: 0 0 10px rgba(0, 210, 211, 0.3);
+        }
+
+        /* Menü Butonu */
+        .menu-btn {
+            background: #ff9f43;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.5);
+            transition: transform 0.2s;
+        }
+        .menu-btn:active { transform: scale(0.9); }
+
+        /* Günlük (Log) Penceresi */
+        #changelog-modal {
+            display: none; /* Başlangıçta gizli */
+            position: absolute;
+            top: 70px;
+            right: 15px;
+            width: 300px;
+            max-height: 80vh;
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            z-index: 10001;
+            color: white;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* Tablo Stilleri */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; border-bottom: 2px solid #555; padding: 8px 0; color: #ff9f43; }
+        td { border-bottom: 1px solid #333; padding: 8px 0; vertical-align: top; }
+        .ver-col { width: 60px; font-weight: bold; color: #00d2d3; }
+        .date-col { font-size: 10px; color: #aaa; display: block; margin-top: 2px;}
+
     </style>
 </head>
 
 <body>
-    <div id="ui-layer">
-        <div class="header">
-            <h1 id="main-title">YÜKLENİYOR...</h1>
-            <p>Çemberden bir konu seçin</p>
-        </div>
-        <div class="hint">Merkezdeki küpü çevirebilirsiniz</div>
+
+    <div id="top-right-ui">
+        <div class="version-badge" id="current-version">v3.0.0</div>
+        <button class="menu-btn" onclick="toggleLog()"><i class="fa-solid fa-list-check"></i></button>
     </div>
 
-    <div id="modal-ar" class="modal"><h2>AR Teknolojisi</h2><p>Gerçek dünyayı zenginleştirin.</p><button class="kapat-btn" onclick="modalKapat()">Kapat</button></div>
-    <a-scene background="color: #050505" cursor="rayOrigin: mouse" raycaster="objects: .tiklanabilir">
-        <a-sky color="#050505"></a-sky>
-        <a-entity position="0 0 0" particle-system="preset: dust; color: #ffffff; particleCount: 500"></a-entity>
+    <div id="changelog-modal">
+        <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px;">Geliştirici Günlüğü</h3>
+        <table id="log-table">
+            <thead>
+                <tr>
+                    <th>Sürüm</th>
+                    <th>Detaylar</th>
+                </tr>
+            </thead>
+            <tbody id="log-body">
+                </tbody>
+        </table>
+    </div>
+
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" vr-mode-ui="enabled: false">
         
-        <a-light type="ambient" intensity="0.6"></a-light>
-        <a-light type="directional" position="-2 4 4" intensity="1.5"></a-light>
-        <a-light type="point" position="0 2 2" intensity="1.5" distance="15" color="#a29bfe"></a-light>
+        <a-marker preset="hiro">
+            
+            <a-box position="0 0.5 0" 
+                   material="color: #00d2d3; opacity: 0.8; transparent: true;"
+                   animation="property: rotation; to: 0 360 0; loop: true; dur: 5000">
+            </a-box>
+            
+            <a-text value="AR v3.0.0" position="0 1.5 0" align="center" color="white" scale="2 2 2"></a-text>
 
-        <a-camera id="ana-kamera" position="0 0 6" look-controls="enabled: false"></a-camera>
+        </a-marker>
 
-        <a-entity galaksi-yoneticisi position="0 0 0"></a-entity>
+        <a-entity camera></a-entity>
+
     </a-scene>
 
     <script>
-        function modalAc(id) { let m = document.getElementById(id); if(m){ document.querySelectorAll('.modal').forEach(x => x.classList.remove('aktif')); m.classList.add('aktif'); } }
-        function modalKapat() { document.querySelectorAll('.modal').forEach(x => x.classList.remove('aktif')); }
+        // ============================================
+        // VERSİYON VE GÜNLÜK VERİTABANI
+        // ============================================
+        const appVersion = "v3.0.0";
+        
+        // Buraya her yeni güncellemede en üste yeni bir satır ekleyeceğiz
+        const logs = [
+            { 
+                ver: "v3.0.0", 
+                date: "31.01.2026", 
+                desc: "⚠️ Büyük Sıfırlama. Proje AR tabanına taşındı. WebAR motoru entegre edildi. Versiyon takip menüsü eklendi." 
+            },
+            { 
+                ver: "v2.5.0", 
+                date: "30.01.2026", 
+                desc: "Çoklu küp sistemi ve slot mekanizması denenmişti. (ARşivlendi)" 
+            },
+            { 
+                ver: "v1.0.0", 
+                date: "01.01.2026", 
+                desc: "İlk proje başlangıcı." 
+            }
+        ];
+
+        // 1. Güncel Versiyonu Yaz
+        document.getElementById('current-version').innerText = appVersion;
+
+        // 2. Tabloyu Doldur
+        const tableBody = document.getElementById('log-body');
+        
+        logs.forEach(log => {
+            let row = `
+                <tr>
+                    <td class="ver-col">
+                        ${log.ver}
+                        <span class="date-col">${log.date}</span>
+                    </td>
+                    <td>${log.desc}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+
+        // 3. Menü Aç/Kapa Fonksiyonu
+        function toggleLog() {
+            const modal = document.getElementById('changelog-modal');
+            if (modal.style.display === 'block') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
